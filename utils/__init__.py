@@ -92,14 +92,18 @@ def create_omex(sedml_filepath, sbml_filepath, omex_filepath=None, silent_overwr
     overwrite any existing omex file
     '''
 
-    #provide an omex filepath if not specified
+    #provide an omex filepath if not specified based on sbml file path
     if not omex_filepath:
-        if sedml_filepath.endswith('.sedml'):
-            omex_filepath = Path(sedml_filepath[:-6] + '.omex')
-        elif sedml_filepath.endswith('.xml'):
-            omex_filepath = Path(sedml_filepath[:-4] + '.omex')
-        else:
-            omex_filepath = Path(sedml_filepath+'.omex')
+        # replace .sbml with .omex using re
+        omex_filepath = re.sub(r'(\.sbml)', r'.omex', sbml_filepath)
+
+    # if not omex_filepath:
+    #     if sedml_filepath.endswith('.sedml'):
+    #         omex_filepath = Path(sedml_filepath[:-6] + '.omex')
+    #     elif sedml_filepath.endswith('.xml'):
+    #         omex_filepath = Path(sedml_filepath[:-4] + '.omex')
+    #     else:
+    #         omex_filepath = Path(sedml_filepath+'.omex')
 
     #suppress pymetadata "file exists" warning by preemptively removing existing omex file
     if os.path.exists(omex_filepath) and silent_overwrite:
@@ -108,6 +112,7 @@ def create_omex(sedml_filepath, sbml_filepath, omex_filepath=None, silent_overwr
     sbml_file_entry_format = get_entry_format(sbml_filepath, 'SBML')
     sedml_file_entry_format = get_entry_format(sedml_filepath, 'SEDML')
 
+    print(Path(sedml_filepath))
     #wrap sedml+sbml files into an omex combine archive
     om = omex.Omex()
     om.add_entry(
@@ -116,7 +121,7 @@ def create_omex(sedml_filepath, sbml_filepath, omex_filepath=None, silent_overwr
             format = getattr(omex.EntryFormat, sedml_file_entry_format),
             master = True,
         ),
-        entry_path = Path(os.path.basename(sedml_filepath))
+        entry_path = Path(sedml_filepath)
     )
     om.add_entry(
         entry = omex.ManifestEntry(
